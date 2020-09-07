@@ -572,3 +572,32 @@ function (slotProps) {
 ## Vue前后端交互
 
 ### Promise用法
+
+Promise 出现的目的是解决异步编程中回调地狱的问题
+
+```
+var promise = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    if (true) {
+      resolve({name: '张三'})
+    } else {
+      reject('失败了')
+    }
+  }, 2000);
+});
+
+promise
+  .then(result => {
+  	console.log(result);
+  	return newPromise;
+  })
+  .then(result => {
+  	console.log(result);
+  	return newPromise;
+  })
+```
+
+**then参数中的函数返回值**
+
+- `Promise`对象  返回的该实例对象会调用下一个`then`
+- 返回普通值   返回的普通值会传递给下一个`then`参数中函数的参数
