@@ -1,3 +1,7 @@
+---
+
+---
+
 # Vue基础
 
 ## 概述
@@ -573,7 +577,7 @@ function (slotProps) {
 
 ### Promise用法
 
-Promise 出现的目的是解决异步编程中回调地狱的问题
+`Promise` 出现的目的是解决异步编程中回调地狱的问题
 
 ```
 var promise = new Promise((resolve, reject) => {
@@ -601,3 +605,268 @@ promise
 
 - `Promise`对象  返回的该实例对象会调用下一个`then`
 - 返回普通值   返回的普通值会传递给下一个`then`参数中函数的参数
+
+`Promise`常用API
+
+- 实例方法
+  - `then`   获得异步任务的正确结果
+  - `catch`   获取异常信息
+  - `finally`   成功与否都会执行
+
+- 对象方法
+  - `Promise.all()`   并发处理多个异步任务，所有任务都执行完成才能得到结果 
+  - `Promise.race()`    并发处理多个异步任务，只要有一个任务完成就能得到结果
+
+```
+Promise.all([promise1, promise2, promise3]).then((values) => {
+  console.log(values);
+});
+// [result1,result2,result3]
+```
+
+### 接口调用
+
+#### fetch
+
+```
+fetch(url)
+	// text()、json()方法的返回值是一个Promise对象
+	.then(data => data.text())
+	.then(ret => {
+		// 获取最终的数据
+		console.log(ret);
+	})
+```
+
+**`fetch`请求参数**
+
+```
+fetch(url,{
+	method: 'GET',		// GET,POST PUT DELETE
+	body: JSON.stringify(data), // must match 'Content-Type' header
+	headers: {
+		'content-type': 'application/json'
+	}
+})
+```
+
+#### axios
+
+`axios`是一个基于Promise用于浏览器和Node.js的HTTP客户端
+
+- 支持浏览器和node.js
+- 支持Promise
+- 能拦截请求和响应
+- 自动转换JSON数据
+
+```
+// get,delete
+axios.get('/path',{    
+		params: {
+			id: 123
+		}
+}).then(response => console.log(response.data))    // data属性用于获取实际数据	
+// post,put	
+axios.post('/user', {
+    firstName: 'Fred',
+    lastName: 'Flintstone'
+  })
+```
+
+**`axios`全局配置**
+
+```
+// 超时时间
+axios.defaults.timeout = 3000;
+// 基准地址
+axios.defaults.baseURL = "http://localhost:3000"
+// 请求头
+axios.defaults.headers['mytoken'] = 'hello'
+```
+
+**`axios`拦截器**
+
+```
+// 请求拦截器
+// 发送请求前做一些配置信息
+axios.interceptors.request.use(function(config) {
+    console.log(config.url);
+    config.headers.mytoken = 'nihao';
+    return config;
+}, function(err) {
+    console.log('err');
+});
+
+// 响应拦截器
+// 获取数据前对数据做一些处理
+axios.interceptors.response.use(function(res) {
+    return res.data;
+}, function(err) {
+    console.log('err');
+});
+```
+
+#### 异步函数
+
+```
+async function() { // 函数返回值是一个promise对象
+	// await关键字只能用于异步函数
+	const data = await new Promise(resolve,reject) {}
+}
+```
+
+## 前端路由
+
+### 路由
+
+- 后端路由：url地址与服务器资源之间的对应关系
+- 前端路由：用户事件与事件处理函数之间的对应关系
+
+**SPA单页面应用程序**：整个网站只有一个页面，内容的变化通过Ajax局部更新实现，同时支持浏览器的前进后退操作
+
+### Vue Router
+
+#### 基本使用
+
+```
+// 创建路由链接 <router-link>默认会被渲染成一个<a>标签
+<router-link to="/foo">Go to Foo</router-link>
+// 路由占位符 将路由匹配到的组件将渲染在这里
+<router-view></router-view>
+// 定义路由组件
+const Foo = { template: '<h1>Foo</h1>'};
+// 创建路由实例 传 routes配置
+const router = new vueRouter({
+	// 所有的路由规则
+	routes: [{
+		path: '/foo',
+		component: Foo
+	}]
+})
+// 将路由挂载到vue根实例
+new Vue({
+	el: '#app',
+	data: {},
+	router
+})
+```
+
+#### 路由重定向
+
+```
+routes: [{ path: '/', redirect: '/user' }]
+```
+
+#### 嵌套路由
+
+```
+const Foo = { template: `
+	<h1>Foo</h1>
+	<router-link to="/foo/child">Go to Foo</router-link>
+	<router-view></router-view>
+	`
+};
+const child = {template: '<h1>child</h1>'}
+const router = new vueRouter({
+	// 所有的路由规则
+	routes: [{
+		path: '/foo',
+		component: Foo,
+		children: [{
+			path: '/foo/child',
+			component: child
+		}]
+	}]
+})
+```
+
+#### 动态路由匹配
+
+```
+const router = new VueRouter({
+  routes: [
+    // 动态路径参数 以冒号开头
+    { path: '/user/:id', component: User }
+  ]
+})
+// 路由组件通过$route.params访问路由参数
+const User = {
+  template: '<div>User {{ $route.params.id }}</div>'
+}
+```
+
+#### 路由组件传参
+
+```
+// 布尔模式
+// route.params将会被设置为组件属性
+const User = {
+  props: ['id'],
+  template: '<div>User {{ id }}</div>'
+}
+const router = new VueRouter({
+  routes: [
+    { path: '/user/:id', component: User, props: true }
+  ]
+})
+```
+
+```
+// 对象模式
+// 该对象会被按原样设置为组件属性
+const User = {
+  props: ['name','age'],
+  template: '<div>User {{ name }}</div>'
+}
+const router = new VueRouter({
+  routes: [
+    { path: '/user/:id', component: User, props: {name: 'lisi',age: 20} }
+  ]
+})
+```
+
+```
+// 函数模式
+const User = {
+  props: ['name','age'],
+  template: '<div>User {{ name }}</div>'
+}
+const router = new VueRouter({
+  routes: [
+    { path: '/user/:id', component: User, props: route => ({name: 'lisi',age: 20},id: route.params.id) }
+  ]
+})
+```
+
+#### 命名路由
+
+```
+// 在routes配置中给某个路由设置名称
+const router = new VueRouter({
+  routes: [
+    {
+      path: '/user/:userId',
+      name: 'user',
+      component: User
+    }
+  ]
+})
+<router-link :to="{name: user,params: {id: 4}}">user3</router-link>
+router.push({ name: 'user', params: { userId: 123 }})
+```
+
+#### 编程式导航
+
+```
+// 通过js代码跳转页面
+this.$router.push('hash地址');
+this.$router.go(num);
+
+router.push('/user')
+router.push({ path: '/user' })
+// 命名的路由
+router.push({ name: 'user', params: { userId: '123' }})
+// 带查询参数，变成 /register?plan=private
+router.push({ path: 'register', query: { plan: 'private' }})
+```
+
