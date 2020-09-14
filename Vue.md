@@ -573,7 +573,7 @@ function (slotProps) {
 </current-user>
 ```
 
-## Vue前后端交互
+## 前后端交互
 
 ### Promise用法
 
@@ -642,7 +642,7 @@ fetch(url)
 
 ```
 fetch(url,{
-	method: 'GET',		// GET,POST PUT DELETE
+	method: 'GET',		// GET POST PUT DELETE
 	body: JSON.stringify(data), // must match 'Content-Type' header
 	headers: {
 		'content-type': 'application/json'
@@ -735,8 +735,8 @@ async function() { // 函数返回值是一个promise对象
 <router-view></router-view>
 // 定义路由组件
 const Foo = { template: '<h1>Foo</h1>'};
-// 创建路由实例 传 routes配置
-const router = new vueRouter({
+// 创建路由实例 传routes配置
+const router = new VueRouter({
 	// 所有的路由规则
 	routes: [{
 		path: '/foo',
@@ -767,7 +767,7 @@ const Foo = { template: `
 	`
 };
 const child = {template: '<h1>child</h1>'}
-const router = new vueRouter({
+const router = new VueRouter({
 	// 所有的路由规则
 	routes: [{
 		path: '/foo',
@@ -833,7 +833,7 @@ const User = {
 }
 const router = new VueRouter({
   routes: [
-    { path: '/user/:id', component: User, props: route => ({name: 'lisi',age: 20},id: route.params.id) }
+    { path: '/user/:id', component: User, props: route => ({name: 'lisi',age: 20,id: route.params.id}) }
   ]
 })
 ```
@@ -868,5 +868,247 @@ router.push({ path: '/user' })
 router.push({ name: 'user', params: { userId: '123' }})
 // 带查询参数，变成 /register?plan=private
 router.push({ path: 'register', query: { plan: 'private' }})
+```
+
+# 前端工程化
+
+## ES6模块化规范
+
+- `AMD`和`CMD`只适用于浏览器端
+- `CommonJS`只适用于服务器端
+- `ES6`模块化规范是浏览器与服务器通用的模块化规范
+  - 导入成员用`import`关键字
+  - 暴露成员用`export`关键字
+
+### 基本语法
+
+**默认导出、导入**
+
+- `export default 成员`    如果没有默认导出，导入时会接收到一个空对象 	默认导出只能用一次
+- `import 接收名称 from '模块标识符'`
+
+**按需导出、导入**
+
+- `export let s1 = 'aaa'`		可以多次使用按需导出
+- `import {s1} from '模块标识符'`
+
+**直接导入并执行**
+
+```
+// 不接收成员 单纯的执行某个模块的代码
+import '模块标识符'
+```
+
+## webpack
+
+提供了模块化支持、代码压缩混淆、处理js兼容问题和性能优化等功能
+
+### 基本使用
+
+- `npm install webpack webpack-cli -D`
+
+- 项目根目录创建`webpack.config.js`配置文件
+
+- 在`webpack.config.js`中初始化配置
+
+  ```
+  module.exports = {
+      mode: 'development' // development,production
+  };
+  ```
+
+- 在`package.json`文件的`script`节点下，新增`dev`脚本
+
+  ```
+  "scripts": {
+      "dev": "webpack"
+  }
+  ```
+
+- `npm run dev`进行打包
+
+### 打包的入口与出口
+
+- 默认入口：`./src/index.js`
+- 默认出口：`./dist/main.js`
+
+```
+const path = require('path');
+module.exports = {
+	// 模式 development/production
+    mode: 'development',
+    entry: path.join(__dirname, 'src', 'index.js'),
+    output: {
+        path: path.join(__dirname, 'dist'),
+        filename: 'bundle.js'
+    }
+};
+```
+
+### 自动打包
+
+```
+npm install webpack-dev-server -D
+
+// --open 打包完成后自动打开浏览器页面
+// --host 配置IP地址
+// --port 配置端口
+"dev": "webpack-dev-server"
+
+<script src="/bundle.js"></script>
+
+npm run dev
+
+http://localhost:8080/
+```
+
+- `webpack-dev-server`会启动一个实时打包的http服务器
+- `webpack-dev-server`打包生成的输出文件默认放到了项目根目录
+
+### 生成预览页面
+
+```
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+module.exports = {
+    mode: 'development',
+    entry: path.join(__dirname, 'src', 'index.js'),
+    output: {
+        path: path.join(__dirname, 'dist'),
+        filename: 'bundle.js'
+    },
+    // 存放一些插件列表
+    plugins: [
+        new HtmlWebpackPlugin({ template: './src/index.html', filename: 'index.html' })
+    ]
+};
+```
+
+### 加载器
+
+webpack只能默认打包js文件，loader加载器可以协助打包处理非js文件
+
+```
+module: {
+	rules: [
+		// test表示某种类型的文件  use表示要调用的loader
+		// use数组中指定的loader顺序是固定的
+		// 多个loader的调用顺序是从后往前
+		{test: /\.css$/, use: ['style-loader', 'css-loader']},
+		{test: /\.less$/, use: ['style-loader', 'css-loader','less-loader']},
+		{test: /\.scss$/, use: ['style-loader', 'css-loader','sass-loader']},
+		// 当图片大小小于limit字节会被转换为base64的图片
+		// npm i url-loader file-loader -D
+		{test: /\.jpg|png|ttf|eot|svg$/,use: 'url-loader?limit=16940'}
+	]
+}
+```
+
+**配置postCSS自动添加css兼容前缀**
+
+```
+npm i postcss-loader autoprefixer -D
+// 根目录postcss.config.js
+const autoprefixer = require('autoprefixer');
+module.exports = {
+	plugins: [autoprefixer]
+}
+
+// webpack.config.js
+module: {
+	rules: [
+		// test表示某种类型的文件  use表示要调用的loader
+		// use数组中指定的loader顺序是固定的
+		// 多个loader的调用顺序是从后往前
+		{ test: /\.css$/, use: ['style-loader', 'css-loader','postcss-loader'] }
+	]
+}
+```
+
+## vue单文件组件
+
+```
+<!-- my-component.vue -->
+<template>
+    <h1>{{msg}} world</h1>
+</template>
+
+<script>
+export default {
+    data: function() {
+        return {
+            msg: 'hello'
+        }
+    }
+}
+</script>
+
+<style scoped>
+    h1 {
+        color: red;
+    }
+</style>
+```
+
+**webpack打包vue单文件组件**
+
+```
+npm i vue-loader vue-template-compiler -D
+
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
+module.exports = {
+    plugins: [
+        new VueLoaderPlugin()
+    ],
+    module: {
+        rules: [
+            { test: /\.vue$/, use: 'vue-loader' }
+        ]
+    }
+};
+```
+
+## vue脚手架
+
+```
+npm install -g @vue/cli
+
+// 创建项目
+vue create my-project
+
+vue ui
+
+npm install -g @vue/cli-init
+vue init webpack my-project
+```
+
+### vue脚手架自定义配置
+
+```
+// 通过package.json配置项目
+"vue": {
+	"devServer": {
+		"open": true,
+		"port": 8888
+	}
+}
+
+// 通过单独的配置文件配置项目
+// 根目录下创建vue.config.js
+module.exports = {
+	devServer: {
+		open: true,
+		port: 8888
+	}
+}
+```
+
+## ElementUI
+
+```
+// main.js
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
+Vue.use(ElementUI);
 ```
 

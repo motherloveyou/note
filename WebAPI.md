@@ -395,7 +395,7 @@ history.go(n);				// 参数为数字，正数表示前进多少步，负数表�
 - offset系列获得的值是没有单位的；style.width是带有单位的字符串
 - offsetWidth包含padding+border+width；style.width不包含padding和border
 - offsetWidth等属性是只读属性；style.width是可读写属性
-- 获取元素大小位置时，用offer合适；更改元素值时，需要用style去改变
+- 获取元素大小位置时，用offset合适；更改元素值时，需要用style去改变
 
 #### 元素可视区client
 
@@ -447,8 +447,6 @@ function animate(obj, target, callback) {
     }, 15)
 }
 ```
-
-
 
 ## 移动端网页特效
 
