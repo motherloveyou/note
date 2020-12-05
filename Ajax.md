@@ -42,14 +42,14 @@ JSON.parse();	// 将JSON字符串转换为JSON对象
 
 **GET请求方式**
 
-```
+```javascript
 xhr.open('get', 'http://localhost:3000/get?name=zhangsan&age=20');
 xhr.send();
 ```
 
 **POST请求方式**
 
-```
+```javascript
 // 请求参数放在send方法中
 // 必须设置请求参数的格式类型
 xhr.open('post', 'http://localhost:3000/post');
@@ -61,14 +61,14 @@ xhr.send('name=zhangsan&age=20');
 
 1. application/x-www-form-urlencoded
 
-```
+```javascript
 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 xhr.send('name=zhangsan&age=20');
 ```
 
 2. application/json
 
-```
+```javascript
 xhr.setRequestHeader('Content-Type', 'application/json');
 xhr.send(JSON.stringify({name: 'zhangsan', age: 20}));
 ```
@@ -85,7 +85,7 @@ xhr.send(JSON.stringify({name: 'zhangsan', age: 20}));
 - 3     接收到部分数据
 - 4     数据全部接收完成
 
-```
+```javascript
 // 相比load事件的优点是兼容IE低版本浏览器；缺点是需要被调用多次，而load只需要调用一次
 xhr.onreadystatechange = function() {
 	console.log(xhr.readyState);
@@ -129,14 +129,14 @@ xhr.onreadystatechange = function() {
 
 # Ajax封装
 
-```
+```javascript
 // 获取响应头中的数据
 xhr.getResponseHeader('属性值');
 // 对象覆盖
 Object.assign(obj1,obj2);	// 使用obj2对象中的属性覆盖obj1对象中的属性；会更改obj1的属性值
 ```
 
-```
+```javascript
 function Ajax(obj) {
 	var defaults = {
 		type: 'get',
@@ -195,9 +195,8 @@ Ajax({
 <script src="/js/template-web.js"></script>
 1.模板写在script标签中
 // 准备模板
-<script id="tpl" type="text/html">
+<script id="tpl" type="text/html"></script>
 
-</script>
 // 哪一个数据和哪一个模板拼接
 var html = template('tpl',{ name: 'zhangsan', age: 20 })  // 模板id，拼接对象
 // 将拼接好的html字符串添加到页面

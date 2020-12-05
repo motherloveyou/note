@@ -108,9 +108,15 @@ gulp.dest()		// 输出文件（复制）
 gulp.task()		// 建立gulp任务
 gulp.watch()	// 监控文件的变化
 
-function 任务名() {};		// 创建任务
+// 创建任务
+function 任务名() {
+	return gulp.src('*.css')
+		.pipe(csso())
+		.pipe(gulp.dest('./dist/css'))
+};
+
 exports.任务名 = 任务名;		// 导出任务（公开任务，未被导出则为私有任务）
-exports.任务 = series/parallel(任务1,任务2...);	// 使用series和parallel将多个独立的任务组合为一个更大的操作
+exports.任务 = gulp.series/parallel(任务1,任务2...);	// 使用series和parallel将多个独立的任务组合为一个更大的操作
 ```
 
 ```

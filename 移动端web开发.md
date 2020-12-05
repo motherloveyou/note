@@ -102,7 +102,7 @@ body {
 
 
 
-##### 2.flex弹性布局(强烈推荐)
+##### 2.flex弹性布局
 
 ###### flex布局原理
 
@@ -172,7 +172,70 @@ order: <number>;	默认值是0，数值越小越靠前
 background: -webkit-linear-gradient(left,red,blue);		必须加浏览器前缀
 ```
 
-##### 3.less+rem+媒体查询布局
+##### 3.grid布局
+
+指定网格的宽高
+
+```css
+.wrap {
+	display: grid;
+	// 可以使用百分比 grid-template-columns: 33.33% 33.33% 33.33%;
+	// repeat接受两个参数：第一个数重复的次数，第二个是重复的值 grid-template-columns: repeat(2,100px 20px 80px)
+	// 使用auto-fill来自动填充 grid-template-columns: repeat(auto-fill, 100px) 
+	// fr表示比例关系 grid-template-columns: 1fr 2fr 1fr; fr可以和绝对长度相结合一起使用
+	// grid-template-columns: 1fr 1fr minmax(100px,1fr);  minmax(100px,1fr)表示列宽不小于100px，不大于1fr
+	grid-template-columns: 150px 150px 150px;
+    grid-template-rows: 150px 150px 150px;
+}
+```
+
+设置行与行、列与列之间的间隔
+
+```
+.wrap {
+    grid-row-gap: 10px;
+  	grid-column-gap: 10px;
+  	// 合并写法 grid-gap: 10px 10px;
+} 
+```
+
+自定义排列顺序  默认是先行后列
+
+```css
+.wrap {
+	<!-- row column -->
+	grid-auto-flow: colunm;
+}
+```
+
+设置单元格内容的位置
+
+```
+.wrapper {
+  justify-items: start | end | center | stretch;
+  align-items: start | end | center | stretch;
+}
+place-items: <align-items> <justify-items>; // 如果省略第二个值，则浏览器认为与第一个值相等。
+```
+
+设置内容区域在容器里面的位置
+
+```
+.wrapper {
+  justify-content: start | end | center | stretch | space-around | space-between | space-evenly;
+  align-content: start | end | center | stretch | space-around | space-between | space-evenly;  
+}
+place-content: <align-content> <justify-content>
+```
+
+指定项目的边框
+
+- `grid-column-start`属性：左边框所在的垂直网格线
+- `grid-column-end`属性：右边框所在的垂直网格线
+- `grid-row-start`属性：上边框所在的水平网格线
+- `grid-row-end`属性：下边框所在的水平网格线
+
+##### 4.less+rem+媒体查询布局
 
 ###### rem单位
 

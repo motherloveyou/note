@@ -487,10 +487,11 @@ arr.pop();						// [n3,n4,1,2,3,n1]，删除数组的最后一个元素，无参
 arr.shift();					// [n4,1,2,3,n1]，删除数组的第一个元素，无参数，返回的是被删除的元素
 arr.splice(begin[,length])		// 从指定索引号删除指定长度的元素
 
-// 数组排序
+// 数组翻转
 var arr1 = ['red','green','blue'];
 console.log(arr1.reverse());				// 翻转数组，['blue','green','red']
 
+// 数组排序
 var arr2 = [13,4,77,1,7];
 console.log(arr2.sort());    			// 按照转换为的字符串的诸个字符的Unicode位点进行排序排序 [1,13,4,7,77]
 arr2.sort(function(a,b) {

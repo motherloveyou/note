@@ -1,7 +1,3 @@
----
-
----
-
 # Vue基础
 
 ## 概述
@@ -326,11 +322,11 @@ computed: {
 // 当需要在数据变化时执行异步或开销较大的操作时使用侦听器
 watch: {
 	// 属性名与数据名字一致；val表示数据值
-    firstName: function (val) {
-      this.fullName = val + ' ' + this.lastName
+    firstName: function (newV,oldV) {
+      this.fullName = newV + ' ' + this.lastName
     },
-    lastName: function (val) {
-      this.fullName = this.firstName + ' ' + val
+    lastName: function (newV,oldV) {
+      this.fullName = this.firstName + ' ' + newV
     }
 }
 
@@ -390,6 +386,51 @@ filters: {
 // 完全销毁一个实例 触发beforeDestroy和destroyed的钩子
 vm.$destroy()
 ```
+
+### refs
+
+可以获取DOM节点
+
+```
+<input type="text" ref="input" />
+通过this.$refs.input获取该元素
+```
+
+### nextTick
+
+更新DOM是异步进行的  通过nextTick方法在修改数据后执行操作
+
+```
+Vue.nextTick(() => {
+	// DOM更新了
+})
+```
+
+### mixin
+
+分发vue组件中的可复用功能
+
+```
+const myMixin = {
+	data() {
+		msg: 'zs'
+	},
+	methods: {
+		show() {
+			// 混入方法
+		}
+	}
+}
+new Vue({
+	el: '#app',
+	// 将myMixin混入到实例或组件中，重复以组件为准
+	mixins: [myMixin]
+})
+
+通过Vue.mixin({})可以创建全局的混入
+```
+
+
 
 ## 数组更新检测
 
@@ -533,7 +574,7 @@ Vue.component('alert-box', {
 // v-slot只能添加在<template>上
 // v-slot的缩写: #，该缩写只在其有参数的时候才可用   v-slot:header可以被重写为#header
 <alert-box>
-	<template v-slot="header">
+	<template v-slot:header>
 		<h1>Here might be a page title</h1>
 	</template>
 	<!-- 任何没有被包裹在带有v-slot的<template>中的内容都会被视为默认插槽的内容 -->
@@ -568,7 +609,7 @@ function (slotProps) {
   // 插槽内容
 }
 // 这意味着v-slot的值实际上可以是任何能够作为函数定义中的参数的JavaScript表达式
-<current-user v-slot="{ user }">
+<current-user v-slot="{user}">
   {{ user.firstName }}
 </current-user>
 ```
@@ -711,7 +752,7 @@ axios.interceptors.response.use(function(res) {
 ```
 async function() { // 函数返回值是一个promise对象
 	// await关键字只能用于异步函数
-	const data = await new Promise(resolve,reject) {}
+	const data = await new Promise((resolve,reject) => {}) 
 }
 ```
 
@@ -773,7 +814,7 @@ const router = new VueRouter({
 		path: '/foo',
 		component: Foo,
 		children: [{
-			path: '/foo/child',
+			path: '/foo/child',  // 或者path: 'child' 都匹配 '/foo/child'
 			component: child
 		}]
 	}]
@@ -865,9 +906,25 @@ this.$router.go(num);
 router.push('/user')
 router.push({ path: '/user' })
 // 命名的路由
+// 当path和params同时存在时，会忽略params，只匹配path里面的地址
 router.push({ name: 'user', params: { userId: '123' }})
 // 带查询参数，变成 /register?plan=private
 router.push({ path: 'register', query: { plan: 'private' }})
+```
+
+#### 导航守卫
+
+```
+const router = new VueRouter({ ... })
+router.beforeEach((to, from, next) => {
+  // to 将要访问的路径
+  // from 代表从哪个路径跳转而来
+  // next()代表放行 next('/login')强制跳转
+  if(to.path === '/login') return next();
+  const token = sessionStorage.getItem('token');
+  if(!token) return next('/login')
+  next()
+})
 ```
 
 # 前端工程化
@@ -1050,7 +1107,19 @@ export default {
 </style>
 ```
 
-**webpack打包vue单文件组件**
+### 创建数据格式化规则
+
+```
+// 项目根目录下创建 .prettierrc
+{
+	// 不加分号
+	"semi": false,
+	// 使用单引号
+	"singleQuote": true
+}
+```
+
+### webpack打包vue单文件组件
 
 ```
 npm i vue-loader vue-template-compiler -D
@@ -1110,5 +1179,274 @@ module.exports = {
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 Vue.use(ElementUI);
+```
+
+# 项目优化
+
+- 生成打包报告
+
+  - 命令行工具	`vue-cli-service build --report`
+  - 通过可视化uI面板查看报告
+
+- 第三方库启用CDN
+
+  - 通过externals加载外部CDN资源
+
+    ```
+    config.set('externals',{
+    	vue: 'Vue'
+    	'vue-router': 'VueRouter',
+    	axios: 'axios'
+    })
+    ```
+
+  - 同时在`public/index.html`文件的头部添加CDN资源引用
+
+- Element-UI组件按需加载
+
+- 路由懒加载
+
+  - ```
+    // 安装@babel/plugin-syntax-dynamic-import包
+    const Foo = () => import(/* webpackChunkName: "group-foo" */ './Foo.vue')
+    const Bar = () => import(/* webpackChunkName: "group-foo" */ './Bar.vue')
+    const Baz = () => import(/* webpackChunkName: "group-foo" */ './Baz.vue')
+    ```
+
+- 首页内容定制
+
+  - ```
+    config.plugin('html').tap(args => {
+    	args[0].isProd = true
+    	return args
+    })
+    ```
+
+    ```
+    <title><%= HtmlWebpackPlugin.options.isProd ? '' : 'dev-' %>电商管理系统</title>
+    ```
+
+- 修改webpack的默认配置
+
+  - 通过`vue.config.js`文件修改webpack的默认配置
+
+    ```
+    // vue.config.js
+    module.exports = {
+    	// 新增configureWebpack与chainWebpack节点来定义打包配置
+    	chainWebpack: config => {
+            config.when(process.env.NODE_ENV === 'production', config => {
+                config.entry('app').clear().add('./src/main-prod.js')
+            })
+            config.when(process.env.NODE_ENV === 'development', config => {
+                config.entry('app').clear().add('./src/main-dev.js')
+            })
+        }
+    }
+    ```
+
+# 项目上线
+
+- 通过node创建web服务器
+
+  - ```
+    const express = require('express');
+    const app = express();
+    // 托管静态资源
+    app.use(express.static('./dist'));
+    app.listen(80)
+    ```
+
+- 开启gzip配置
+
+  - ```
+    const compression = require('compression')
+    // 写在静态资源托管前面
+    app.use(compression())
+    ```
+
+- 配置https服务
+
+  - [申请SSL证书](https://freessl.cn/)
+
+  - ```
+    const https = require('https')
+    const fs = require('fs')
+    const options = {
+    	cert: fs.readFileSync('./full_chain.pem'),
+    	key: fs.readFileSync('./private.key')
+    }
+    https.createServer(options,app).listen(443)
+    ```
+
+- 使用pm2管理应用
+
+  - `npm i pm2 -g`
+  - 启动项目  `pm2 start 脚本 --name 自定义名称`
+  - 查看项目  `pm2 ls`
+  - 重启项目  `pm2 restart 自定义名称/id`
+  - 停止项目  `pm2 stop 自定义名称/id`
+  - 删除项目  `pm2 delete 自定义名称/id`
+
+# Vuex
+
+Vuex是实现组件全局状态（数据）管理的一种机制，可以方便的实现组件之间数据的共享
+
+## 基本使用
+
+- 安装导入
+
+  ```
+  npm install vuex --save
+  
+  import Vuex from 'vuex'
+  Vue.use(Vuex)
+  ```
+
+- 创建store对象
+
+  ```
+  const store = new Vuex.Store({
+  	// state中存放的是全局共享数据
+  	state: { count: 0 }
+  })
+  ```
+
+- 将store对象挂载到vue实例上
+
+  ```
+  new Vue({
+  	el: '#app',
+  	router,
+  	render: h => h(app),
+  	store
+  })
+  ```
+
+## 核心概念
+
+### state
+
+state提供唯一的公共数据源
+
+```
+// 访问数据
+1. this.$store.state.全局数据名称
+
+2. import { mapState } from 'vuex'
+// 将全局数据映射为当前组件的计算属性
+computed: {
+	...mapState(['count'])
+}
+```
+
+### mutations
+
+用于变更store的数据
+
+```
+const store = new Vuex.Store({
+	state: { count: 0 },
+	// 不要在mutations函数中执行异步操作
+	mutations: {
+		// 第一个参数一定是state
+		add(state,step) {
+			state.count += step
+		}
+	}
+})
+
+// 触发mutation函数
+1. 
+methods: {
+	handle() {
+		this.$store.commit('add',3)
+	}
+}
+2.
+import { mapMutations } from 'vuex'
+// 将全局数据映射为当前组件的方法
+methods: {
+	...mapMutations(['add']),
+	handle() {
+		this.add(3)
+	}
+}
+```
+
+### actions
+
+用于处理异步任务
+
+```
+const store = new Vuex.Store({
+	state: { count: 0 },
+	mutations: {
+		add(state,step) {
+			state.count += step
+		}
+	},
+	actions: {
+		// actions不能直接修改数据，必须触发mutations的某个函数才行
+		asyncAdd(context,step) {
+			setTimeout(() => {
+				context.commit('add',step)
+			},1000)
+		}
+	}
+})
+
+import { mapActions } from 'vuex'
+methods: {
+	...mapActions(['asyncAdd']),
+	handle() {
+		// 触发actions的第一种方式
+		this.$store.dispatch('asyncAdd',3)
+	},
+	handlee() {
+		this.asyncAdd(3)
+	}
+}
+```
+
+### getters
+
+用于对store中的数据加工处理返回新数据
+
+```
+const store = new Vuex.Store({
+	state: { count: 0 },
+	getters: {
+		showNum: state => {
+			return '【'+state.count+'】'
+		}
+	}
+})
+
+1. this.$store.getters.名称
+2. import { mapGetters } from 'vuex'
+// 将全局数据映射为当前组件的计算属性
+computed: {
+	...mapGetters(['showNum'])
+}
+```
+
+### modules
+
+将store分割成模块
+
+```
+const moduleA/B = {
+  state: () => ({ ... }),
+  mutations: { ... },
+  actions: { ... },
+  getters: { ... }
+}
+const store = new Vuex.Store({
+	modules: {
+    	a: moduleA,
+    	b: moduleB
+  	}
+})
 ```
 
