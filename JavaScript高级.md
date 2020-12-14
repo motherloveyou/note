@@ -252,6 +252,9 @@ function fn(n) {
 	return n * fn(n - 1);
 }
 // 函数的执行与函数名fn紧紧耦合在了一起
+
+
+// 在严格模式下，不能通过脚本访问arguments.callee，访问这个属性会导致错误
 function fn(n) {
 	if (n == 1) {
 		return 1;
